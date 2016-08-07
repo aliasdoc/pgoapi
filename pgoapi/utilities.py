@@ -126,20 +126,6 @@ class Rand48(object):
         return n   
 
 def long_to_bytes (val, endianness='big'):
-    """
-    Use :ref:`string formatting` and :func:`~binascii.unhexlify` to
-    convert ``val``, a :func:`long`, to a byte :func:`str`.
-
-    :param long val: The value to pack
-
-    :param str endianness: The endianness of the result. ``'big'`` for
-      big-endian, ``'little'`` for little-endian.
-
-    If you want byte- and word-ordering to differ, you're on your own.
-
-    Using :ref:`string formatting` lets us use Python's C innards.
-    """
-
     # one (1) hex digit per four (4) bits
     width = val.bit_length()
 
@@ -158,9 +144,8 @@ def long_to_bytes (val, endianness='big'):
         s = s[::-1]
 
     return s
-    
-    
-def generateLocation1(authticket, lat, lng, alt): 
+
+def generateLocation1(authticket, lat, lng, alt):
     firstHash = xxhash.xxh32(authticket, seed=0x1B845238).intdigest()
     locationBytes = d2h(lat) + d2h(lng) + d2h(alt)
     if not alt:
@@ -172,12 +157,15 @@ def generateLocation2(lat, lng, alt):
     if not alt:
         alt = "\x00\x00\x00\x00\x00\x00\x00\x00"
     return xxhash.xxh32(locationBytes, seed=0x1B845238).intdigest()      #Hash of location using static seed 0x1B845238
-    
+
 
 def generateRequestHash(authticket, request):
     firstHash = xxhash.xxh64(authticket, seed=0x1B845238).intdigest()                      
     return xxhash.xxh64(request, seed=firstHash).intdigest()
 
-
 def d2h(f):
-    return hex(struct.unpack('<Q', struct.pack('<d', f))[0])[2:-1].decode("hex")
+    x = hex(struct.unpack('<Q', struct.pack('<d', f))[0])
+    if(x[-1] == 'L'):
+         x = x[:-1]
+
+    return x[2:].decode('hex')
